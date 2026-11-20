@@ -1,0 +1,2014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="DIGIT LAB – Real-time Deriv Volatility Indices last-digit statistical analysis tool for Matches/Differs, Over/Under, and Even/Odd." />
+  <meta name="theme-color" content="#090d16" />
+  <title>DIGIT LAB – DERIV ANALYSIS TOOL</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #090d16;
+      --bg-card: #111827;
+      --bg-card-alt: #0f1623;
+      --bg-hover: #1a2438;
+      --border: #1e293b;
+      --border-light: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.14);
+      --green-border: rgba(16, 185, 129, 0.4);
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.14);
+      --red-border: rgba(239, 68, 68, 0.4);
+      --blue: #3b82f6;
+      --blue-bg: rgba(59, 130, 246, 0.14);
+      --amber: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Header & Controls */
+    header {
+      background: rgba(17, 24, 39, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 0.85rem 1.25rem;
+    }
+
+    .header-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #090d16;
+      font-size: 1.15rem;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .brand span {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.35rem 0.65rem;
+    }
+
+    .control-group label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    select {
+      background: transparent;
+      color: var(--text-primary);
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+
+    select option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--bg-primary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+    }
+
+    .status-pill.connected {
+      border-color: var(--green-border);
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .status-pill.connected .status-dot {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 1.6s infinite;
+    }
+
+    .status-pill.disconnected {
+      border-color: var(--red-border);
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .status-pill.disconnected .status-dot {
+      background: var(--red);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.25); }
+    }
+
+    .btn {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 0.42rem 0.8rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #24324d;
+      border-color: var(--blue);
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      max-width: 1440px;
+      margin: 1rem auto 0;
+      padding: 0 1.25rem;
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--border-light);
+    }
+
+    .tab-btn.active {
+      background: var(--blue-bg);
+      color: #60a5fa;
+      border-color: rgba(59, 130, 246, 0.5);
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1440px;
+      margin: 1rem auto 2.5rem;
+      padding: 0 1.25rem;
+    }
+
+    /* Banner Alerts */
+    .alert-banner {
+      display: none;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .alert-banner.show {
+      display: flex;
+    }
+
+    .alert-banner.error {
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+      color: #fca5a5;
+    }
+
+    .alert-banner.loading {
+      background: var(--blue-bg);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.15rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-light);
+    }
+
+    .kpi-label {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+    }
+
+    .kpi-value {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .digit-badge-lg {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      font-size: 1.45rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--blue-bg);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .digit-badge-lg.flash-green {
+      background: var(--green-bg);
+      color: var(--green);
+      border-color: var(--green-border);
+      transform: scale(1.08);
+    }
+
+    .digit-badge-lg.flash-red {
+      background: var(--red-bg);
+      color: var(--red);
+      border-color: var(--red-border);
+      transform: scale(1.08);
+    }
+
+    /* Live Tick Tape */
+    .tick-tape-card {
+      margin-bottom: 1.25rem;
+      padding: 0.9rem 1.15rem;
+    }
+
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .tick-stream {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-light) transparent;
+    }
+
+    .tick-chip {
+      min-width: 32px;
+      height: 32px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.85rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .tick-chip.latest {
+      border-color: #60a5fa;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+      color: var(--text-primary);
+      background: var(--blue-bg);
+    }
+
+    .tick-chip.is-match {
+      background: var(--green-bg);
+      border-color: var(--green-border);
+      color: var(--green);
+    }
+
+    .tick-chip.is-differ {
+      background: var(--red-bg);
+      border-color: var(--red-border);
+      color: #f87171;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .grid-equal {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Digit Selector Buttons */
+    .digit-selector {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 0.45rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .digit-btn {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 0.55rem 0.25rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      transition: all 0.15s ease;
+    }
+
+    .digit-btn:hover {
+      border-color: var(--border-light);
+      background: var(--bg-hover);
+    }
+
+    .digit-btn.selected {
+      background: var(--green-bg);
+      border-color: var(--green);
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.2);
+    }
+
+    .digit-btn .d-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .digit-btn .d-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+    }
+
+    .digit-btn.selected .d-num,
+    .digit-btn.selected .d-pct {
+      color: var(--green);
+    }
+
+    /* Matches & Differs Split Cards */
+    .md-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .md-box {
+      border-radius: 10px;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      background: var(--bg-card-alt);
+    }
+
+    .md-box.matches {
+      border-color: var(--green-border);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 22, 35, 0.9) 100%);
+    }
+
+    .md-box.differs {
+      border-color: var(--red-border);
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, rgba(15, 22, 35, 0.9) 100%);
+    }
+
+    .md-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .md-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 5px;
+    }
+
+    .matches .md-tag {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .differs .md-tag {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .md-pct {
+      font-size: 1.75rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .matches .md-pct { color: var(--green); }
+    .differs .md-pct { color: var(--red); }
+
+    .progress-track {
+      height: 8px;
+      background: var(--bg-primary);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0.6rem 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .matches .progress-fill { background: var(--green); }
+    .differs .progress-fill { background: var(--red); }
+
+    .md-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .stat-row-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.65rem;
+      margin-top: 0.85rem;
+    }
+
+    .mini-stat {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+    }
+
+    .mini-stat span {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .mini-stat strong {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+    }
+
+    /* Charts */
+    .chart-wrapper {
+      position: relative;
+      height: 270px;
+      width: 100%;
+    }
+
+    .chart-wrapper-sm {
+      position: relative;
+      height: 220px;
+      width: 100%;
+    }
+
+    /* Additional Tools: Over/Under & Even/Odd */
+    .barrier-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.9rem;
+    }
+
+    .barrier-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .barrier-btn.active {
+      background: var(--blue-bg);
+      border-color: var(--blue);
+      color: #60a5fa;
+    }
+
+    .dual-meter {
+      display: flex;
+      height: 14px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--bg-primary);
+      margin: 0.75rem 0;
+    }
+
+    .dual-meter .seg-green {
+      background: var(--green);
+      transition: width 0.3s ease;
+    }
+
+    .dual-meter .seg-red {
+      background: var(--red);
+      transition: width 0.3s ease;
+    }
+
+    .dual-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* Hot & Cold Matrix */
+    .digit-matrix {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.65rem;
+    }
+
+    .matrix-cell {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .matrix-cell.hot {
+      border-color: var(--green-border);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .matrix-cell.cold {
+      border-color: var(--red-border);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .badge-tag {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge-hot { background: var(--green-bg); color: var(--green); }
+    .badge-cold { background: var(--red-bg); color: var(--red); }
+
+    /* Historical Table */
+    .table-container {
+      overflow-x: auto;
+      max-height: 360px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    th {
+      background: var(--bg-card-alt);
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      padding: 0.7rem 0.9rem;
+      text-align: left;
+      position: sticky;
+      top: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.6rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    tr:hover td {
+      background: var(--bg-hover);
+    }
+
+    .pill-sm {
+      padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .pill-green { background: var(--green-bg); color: var(--green); }
+    .pill-red { background: var(--red-bg); color: var(--red); }
+    .pill-blue { background: var(--blue-bg); color: #60a5fa; }
+
+    /* Disclaimer Footer */
+    footer {
+      max-width: 1440px;
+      margin: 2rem auto;
+      padding: 1.25rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+    }
+
+    .disclaimer-box {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 10px;
+      padding: 0.9rem 1.1rem;
+      color: #fcd34d;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Responsive Breakpoints */
+    /* Matches strategy playbook */
+    .strategy-wrap { max-width: 1440px; margin: 1rem auto; padding: 0 1.25rem; }
+    .strategy-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:1rem; }
+    .strategy-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:1rem; }
+    .strategy-card h3 { font-size:1rem; margin-bottom:.55rem; color:var(--text-primary); }
+    .strategy-card p { color:var(--text-secondary); font-size:.84rem; margin:.45rem 0; }
+    .strategy-card strong { color:var(--text-primary); }
+    .strategy-card .entry { border-left:3px solid var(--green); padding:.55rem .7rem; margin-top:.7rem; background:var(--green-bg); border-radius:0 7px 7px 0; }
+    .strategy-live { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.45rem; margin:.8rem 0 1rem; }
+    .strategy-digit { background:var(--bg-primary); border:1px solid var(--border); border-radius:8px; padding:.55rem .35rem; text-align:center; }
+    .strategy-digit b { display:block; font-size:1rem; }
+    .strategy-digit span { color:var(--text-secondary); font-size:.72rem; }
+    .strategy-note { font-size:.78rem; color:var(--text-secondary); margin:.6rem 0 1rem; }
+    @media (max-width: 1024px) { .strategy-live { grid-template-columns:repeat(5,minmax(0,1fr)); } }
+
+    @media (max-width: 1024px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      .kpi-value { font-size: 1.25rem; }
+      .grid-equal { grid-template-columns: 1fr; }
+      .md-split { grid-template-columns: 1fr; }
+      .digit-selector { grid-template-columns: repeat(5, 1fr); }
+      .digit-matrix { grid-template-columns: repeat(2, 1fr); }
+      .stat-row-grid { grid-template-columns: 1fr; }
+      .header-inner { flex-direction: column; align-items: stretch; }
+      .controls-bar { justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">DL</div>
+        <div>
+          <h1>DIGIT LAB</h1>
+          <span>Deriv Live Statistical Engine</span>
+        </div>
+      </div>
+
+      <div class="controls-bar">
+        <div class="control-group">
+          <label for="marketSelect">Market</label>
+          <select id="marketSelect" aria-label="Select Volatility Index">
+            <optgroup label="Standard Volatility Indices">
+              <option value="R_10">Volatility 10 Index</option>
+              <option value="R_25">Volatility 25 Index</option>
+              <option value="R_50">Volatility 50 Index</option>
+              <option value="R_75">Volatility 75 Index</option>
+              <option value="R_100" selected>Volatility 100 Index</option>
+            </optgroup>
+            <optgroup label="1-Second Volatility Indices">
+              <option value="1HZ10V">Volatility 10 (1s) Index</option>
+              <option value="1HZ25V">Volatility 25 (1s) Index</option>
+              <option value="1HZ50V">Volatility 50 (1s) Index</option>
+              <option value="1HZ75V">Volatility 75 (1s) Index</option>
+              <option value="1HZ100V">Volatility 100 (1s) Index</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="sampleSelect">Sample</label>
+          <select id="sampleSelect" aria-label="Select Tick Sample Size">
+            <option value="25">Last 25 Ticks</option>
+            <option value="50">Last 50 Ticks</option>
+            <option value="100" selected>Last 100 Ticks</option>
+            <option value="500">Last 500 Ticks</option>
+            <option value="1000">Last 1,000 Ticks</option>
+          </select>
+        </div>
+
+        <div id="connectionStatus" class="status-pill">
+          <span class="status-dot"></span>
+          <span id="statusText">Connecting...</span>
+        </div>
+
+        <button id="reconnectBtn" class="btn" title="Force reconnect WebSocket">Reconnect</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav-tabs" aria-label="Dashboard Sections">
+    <button class="tab-btn active" data-target="all">All Panels</button>
+    <button class="tab-btn" data-target="matches-section">Matches &amp; Differs</button>
+    <button class="tab-btn" data-target="charts-section">Distribution Charts</button>
+    <button class="tab-btn" data-target="additional-section">Over/Under &amp; Even/Odd</button>
+    <button class="tab-btn" data-target="history-section">Hot/Cold &amp; History</button>
+    <button class="tab-btn" data-target="strategy-section">Strategy Playbook</button>
+  </nav>
+
+  <main>
+    <!-- Loading & Error Banners -->
+    <div id="loadingBanner" class="alert-banner loading show">
+      <span>Fetching live historical tick stream from Deriv Public WebSocket API...</span>
+    </div>
+    <div id="errorBanner" class="alert-banner error">
+      <span id="errorText">Connection interrupted. Attempting automatic reconnection...</span>
+      <button id="bannerRetryBtn" class="btn">Retry Now</button>
+    </div>
+
+    <!-- Top KPI Summary Cards -->
+    <section class="kpi-grid" aria-label="Live Market Summary">
+      <div class="card">
+        <div class="kpi-label">Selected Market</div>
+        <div id="kpiMarket" class="kpi-value" style="font-size: 1.2rem;">Volatility 100 Index</div>
+        <div id="kpiSymbol" class="kpi-sub mono">Symbol: R_100 • Public Feed</div>
+      </div>
+
+      <div class="card">
+        <div class="kpi-label">Current Live Price</div>
+        <div id="kpiPrice" class="kpi-value mono">--.--</div>
+        <div id="kpiPriceTime" class="kpi-sub mono">Waiting for tick...</div>
+      </div>
+
+      <div class="card" style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div class="kpi-label">Latest Last Digit</div>
+          <div id="kpiDigitStatus" class="kpi-sub" style="margin-top: 0.4rem;">Target Digit: <strong id="kpiTargetDigit">0</strong></div>
+        </div>
+        <div id="kpiLatestDigit" class="digit-badge-lg">-</div>
+      </div>
+
+      <div class="card">
+        <div class="kpi-label">Ticks Analysed</div>
+        <div id="kpiTicksCount" class="kpi-value mono">0 / 100</div>
+        <div id="kpiBufferInfo" class="kpi-sub">Buffer: 0 of 1,000 max ticks</div>
+      </div>
+    </section>
+
+    <!-- Live Tick Stream Tape -->
+    <section class="card tick-tape-card">
+      <div class="section-header" style="margin-bottom: 0.5rem;">
+        <div class="section-title">
+          <span>Live Last-Digit Stream</span>
+          <span style="font-size: 0.72rem; font-weight: 500; color: var(--text-secondary);">(Newest on left • Green = Match, Red = Differ)</span>
+        </div>
+        <span class="section-subtitle mono" id="tickRateLabel">Stream: Live</span>
+      </div>
+      <div id="liveTickTape" class="tick-stream" aria-live="polite"></div>
+    </section>
+
+    <!-- Matches/Differs strategy playbook added from the user's strategy sheets -->
+    <section class="strategy-wrap" id="strategy-section">
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="section-header"><div><h2 class="section-title">Matches Strategy Playbook (1–7)</h2>
+        <p class="section-subtitle">Reference rules transcribed from your strategy sheets. Use the selected market and sample window above.</p></div><span class="pill-sm pill-blue">READ-ONLY GUIDE</span></div>
+        <div class="strategy-card" style="margin-bottom:.9rem;">
+          <h3>General Matches concept</h3>
+          <p>• Use the <strong>green arc</strong> to locate the most appearing digit.</p>
+          <p>• Consider the two digits with percentages closest to the most appearing digit, preferably the second-highest percentage, and look for an increasing percentage variance of <strong>+0.1%</strong>.</p>
+          <p class="entry"><strong>Entry:</strong> Wait for the moving-pointer indicator to point to the third most appearing digit whose percentage is constant and closest to the selected digit, then trade Matches.</p>
+        </div>
+        <div id="strategyLiveGrid" class="strategy-live" aria-live="polite"></div>
+        <div class="strategy-card" style="margin-bottom:.9rem; border-color:var(--amber);">
+          <h3>New note — Predictions 6 &amp; 7 (statistical context)</h3>
+          <p>These notes describe observed digit-frequency changes only. A digit's percentage rising, falling, or appearing close to another digit does not establish what the next tick will be.</p>
+          <p><strong>Prediction 6:</strong> Watch how digit frequencies fluctuate over the selected sample; stable or converging percentages are descriptive patterns, not forecasts.</p>
+          <p><strong>Prediction 7:</strong> Compare digit frequencies and their recent changes as historical statistics. Green/red highlights and pointer positions do not predict the next result.</p>
+          <p class="entry"><strong>Reminder:</strong> Random digit outcomes may not follow recent patterns. This panel is informational and does not provide trade-entry instructions.</p>
+        </div>
+        <p class="strategy-note">Live percentages and short-term direction are calculated from the bot's tick sample. Green arc/red arc and the moving-pointer indicator in your notes are Deriv interface indicators; this bot cannot directly read those visual indicators, so check them on Deriv before using an entry condition. These patterns are not guaranteed predictions.</p>
+      </div>
+      <div class="strategy-grid">
+        <article class="strategy-card"><h3>Prediction 1 — Strategy 1</h3>
+          <p>• Digit <strong>6</strong> is the least appearing digit (red arc) and its percentage is increasing, not decreasing.</p>
+          <p>• Digit <strong>3</strong> is the most appearing digit (green arc).</p><p>• Digit <strong>1</strong> percentage is higher than digit <strong>2</strong>.</p>
+          <p class="entry"><strong>Entry:</strong> When the moving-pointer indicator points to digit 6, click Matches.</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 1 — Strategy 2</h3>
+          <p>• Digit <strong>1</strong> has the green arc at <strong>11.4%–11.6%</strong>.</p><p>• Digit <strong>7</strong> or <strong>9</strong> has the lowest percentage (red arc) at <strong>9.1% or below</strong>.</p>
+          <p class="entry"><strong>Entry:</strong> When digit 1 rises from 11.4% to 11.6%, click Matches.</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 2</h3>
+          <p>• Digit <strong>7</strong> has the green arc.</p><p>• Digit <strong>2</strong> is at <strong>10.0% ± 0.1%</strong>.</p><p>• Digits <strong>3</strong> and <strong>8</strong> move in opposite percentage directions.</p>
+          <p class="entry"><strong>Entry:</strong> Wait for the moving pointer to point to whichever of digit 3 or 8 has an increasing percentage.</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 3 — Strategy 1</h3>
+          <p>• Digit <strong>1</strong> has a constant percentage.</p><p>• Digit <strong>6</strong> has the green arc and decreases in orderly <strong>0.1%</strong> steps.</p><p>• Digit <strong>3</strong> is above <strong>9.5%</strong> but below <strong>11%</strong>.</p>
+          <p class="entry"><strong>Entry:</strong> Wait for the moving pointer to point to the digit with the least percentage (red arc).</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 3 — Strategy 2</h3>
+          <p>• Digit <strong>0</strong> is the most appearing digit with the highest percentage (green arc).</p><p>• Digit <strong>9</strong> is the least appearing digit with the lowest percentage (red arc).</p><p>• Digit <strong>3</strong> has an increasing percentage, moving closer to digit 0's percentage.</p>
+          <p class="entry"><strong>Entry:</strong> When the green bar moves to digit 3 and the moving pointer points to digit 9 with the red arc, click Matches.</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 4 — Strategy 1</h3>
+          <p>• Digit <strong>5</strong> has the green arc and is no more than <strong>11%</strong>.</p><p>• Digit <strong>4</strong> is <strong>10% ± 0.3%</strong>.</p><p>• Digit <strong>9</strong> is least appearing (red arc); digit <strong>1</strong> is below 10%.</p>
+          <p class="entry"><strong>Entry:</strong> When the moving pointer points to the digit with the third-closest percentage to digit 5, click Matches.</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 4 — Strategy 2</h3>
+          <p>• Digit <strong>6</strong> is at <strong>11.7%</strong> with the green arc.</p><p>• Digit <strong>1</strong> is at <strong>8.3%</strong> with the red arc.</p>
+          <p class="entry"><strong>Entry:</strong> When the percentages of digits 6 and 1 total <strong>20%</strong>.</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 5 — Strategy 1</h3>
+          <p>• Digit <strong>2</strong> is the most appearing digit with the highest percentage.</p><p>• Digit <strong>5</strong> is above <strong>10%</strong> and increasing by <strong>0.1%</strong> steps.</p>
+          <p class="entry"><strong>Entry:</strong> The supplied sheet does not show an entry-point rule for this strategy.</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 6 — Strategies 2 &amp; 3</h3>
+          <p><strong>Strategy 2:</strong> Digit <strong>0</strong> stays constant below 10%. Digit <strong>5</strong> starts increasing and closes in on digit <strong>2</strong>.</p>
+          <p class="entry"><strong>Entry:</strong> When digit 5 starts increasing in percentage and closing in on digit 2, click Matches.</p>
+          <p><strong>Strategy 3:</strong> Digit <strong>0</strong> is below 9% with the red arc; digit <strong>5</strong> is the highest appearing digit and is increasing at 11% or above.</p>
+          <p class="entry"><strong>Entry:</strong> Digits 4 and 5 are within 0.1% (or equal), and the moving pointer points to the third-closest percentage to digit 5.</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 7 — Strategy 1</h3>
+          <p>• Digit <strong>0</strong> has the lowest percentage with the red arc.</p><p>• Digit <strong>7</strong> has the highest percentage with the green arc.</p><p>• Digit <strong>8</strong> is above <strong>11%</strong>.</p>
+          <p class="entry"><strong>Entry:</strong> When the moving pointer points to the second-highest digit by percentage while that percentage is increasing, click Matches.</p>
+        </article>
+        <article class="strategy-card"><h3>Prediction 7 — Strategy 2</h3>
+          <p>• Digit <strong>0</strong> is the most appearing digit with the highest percentage (green arc).</p><p>• Digit <strong>9</strong> is the least appearing digit with the lowest percentage (red arc).</p><p>• Digit <strong>7</strong> has an increasing percentage, moving closer to the green-arc digit's percentage.</p>
+          <p class="entry"><strong>Entry:</strong> When the green bar moves to digit 7 and the moving pointer points to digit 9 with the red arc, click Matches.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Primary Analysis Grid: Matches/Differs + Bar Chart -->
+    <div class="grid-2" id="matches-section">
+      <!-- Matches & Differs Dedicated Section -->
+      <section class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Matches &amp; Differs Analysis</h2>
+            <p class="section-subtitle">Select target digit (0–9) to calculate live occurrence vs. non-occurrence</p>
+          </div>
+          <span class="pill-sm pill-blue mono">Theoretical: 10.0% / 90.0%</span>
+        </div>
+
+        <!-- 0-9 Digit Selector -->
+        <div id="digitSelector" class="digit-selector" role="group" aria-label="Select Target Digit 0 to 9"></div>
+
+        <!-- Matches vs Differs Split -->
+        <div class="md-split">
+          <div class="md-box matches">
+            <div class="md-header">
+              <span class="md-tag">Matches (<span id="matchDigitLabel">0</span>)</span>
+              <span class="mono" style="font-size: 0.8rem; color: var(--green);" id="matchCountLabel">0 ticks</span>
+            </div>
+            <div id="matchPctLabel" class="md-pct">0.0%</div>
+            <div class="progress-track">
+              <div id="matchProgress" class="progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="md-meta">
+              <span>Expected: 10.0%</span>
+              <span id="matchDeltaLabel">Diff: 0.0%</span>
+            </div>
+          </div>
+
+          <div class="md-box differs">
+            <div class="md-header">
+              <span class="md-tag">Differs (Not <span id="differDigitLabel">0</span>)</span>
+              <span class="mono" style="font-size: 0.8rem; color: var(--red);" id="differCountLabel">0 ticks</span>
+            </div>
+            <div id="differPctLabel" class="md-pct">0.0%</div>
+            <div class="progress-track">
+              <div id="differProgress" class="progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="md-meta">
+              <span>Expected: 90.0%</span>
+              <span id="differDeltaLabel">Diff: 0.0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Historical Occurrences & Streak Metrics -->
+        <div class="stat-row-grid">
+          <div class="mini-stat">
+            <span>Ticks Since Last Match</span>
+            <strong id="ticksSinceMatch">-</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Max Differ Streak</span>
+            <strong id="maxDifferStreak">-</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Avg Interval (Ticks)</span>
+            <strong id="avgMatchInterval">-</strong>
+          </div>
+        </div>
+
+        <div style="margin-top: 0.9rem;">
+          <div class="kpi-label" style="margin-bottom: 0.4rem;">Recent Match Intervals (Ticks between appearances)</div>
+          <div id="matchIntervalsList" class="tick-stream"></div>
+        </div>
+      </section>
+
+      <!-- 0-9 Frequency Bar Chart -->
+      <section class="card" id="charts-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">0–9 Digit Frequency Distribution</h2>
+            <p class="section-subtitle">Live percentage breakdown across selected sample window</p>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="freqBarChart"></canvas>
+        </div>
+        <div style="margin-top: 0.85rem; display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.76rem; color: var(--text-secondary);">
+          <span><strong style="color: var(--green);">■</strong> Hottest Digit</span>
+          <span><strong style="color: var(--red);">■</strong> Coldest Digit</span>
+          <span><strong style="color: #60a5fa;">■</strong> Selected Target</span>
+          <span><strong style="color: #94a3b8;">--</strong> 10% Mean Line</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- Charts Row: Matches vs Differs & Historical Frequency -->
+    <div class="grid-equal">
+      <section class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Matches vs. Differs Comparison</h2>
+            <p class="section-subtitle">Visual ratio for Digit <span id="chartTargetDigit">0</span></p>
+          </div>
+        </div>
+        <div class="chart-wrapper-sm">
+          <canvas id="mdDoughnutChart"></canvas>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Historical Segment Frequency</h2>
+            <p class="section-subtitle">Digit <span id="histTargetDigit">0</span> occurrence % across chronological blocks</p>
+          </div>
+        </div>
+        <div class="chart-wrapper-sm">
+          <canvas id="historicalLineChart"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- Additional Analysis Tools: Over/Under & Even/Odd -->
+    <div class="grid-equal" id="additional-section">
+      <!-- Over / Under Analysis -->
+      <section class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Over / Under Analysis</h2>
+            <p class="section-subtitle">Select reference digit barrier (0–9)</p>
+          </div>
+          <span class="mono" style="font-size: 0.78rem; color: var(--text-secondary);">Barrier: <strong id="ouBarrierDisplay" style="color: #60a5fa;">4</strong></span>
+        </div>
+
+        <div id="ouBarrierSelector" class="barrier-bar" role="group" aria-label="Select Over/Under Barrier"></div>
+
+        <div class="dual-labels">
+          <span style="color: var(--green);">OVER <span id="overBarrierNum">4</span>: <span id="overPct" class="mono">0.0%</span> (<span id="overCount">0</span>)</span>
+          <span style="color: var(--red);">UNDER <span id="underBarrierNum">4</span>: <span id="underPct" class="mono">0.0%</span> (<span id="underCount">0</span>)</span>
+        </div>
+
+        <div class="dual-meter">
+          <div id="overBar" class="seg-green" style="width: 50%;"></div>
+          <div id="underBar" class="seg-red" style="width: 50%;"></div>
+        </div>
+
+        <div class="stat-row-grid" style="grid-template-columns: 1fr 1fr;">
+          <div class="mini-stat">
+            <span>Equal to Barrier (<span id="equalBarrierNum">4</span>)</span>
+            <strong id="equalBarrierStat">0 (0.0%)</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Theoretical Over / Under</span>
+            <strong id="ouTheoretical">50.0% / 40.0%</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- Even / Odd Analysis -->
+      <section class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Even / Odd Analysis</h2>
+            <p class="section-subtitle">Parity distribution (Even: 0,2,4,6,8 • Odd: 1,3,5,7,9)</p>
+          </div>
+          <span class="mono" style="font-size: 0.78rem; color: var(--text-secondary);">Expected: 50% / 50%</span>
+        </div>
+
+        <div class="dual-labels" style="margin-top: 0.65rem;">
+          <span style="color: var(--green);">EVEN: <span id="evenPct" class="mono">0.0%</span> (<span id="evenCount">0</span>)</span>
+          <span style="color: var(--red);">ODD: <span id="oddPct" class="mono">0.0%</span> (<span id="oddCount">0</span>)</span>
+        </div>
+
+        <div class="dual-meter">
+          <div id="evenBar" class="seg-green" style="width: 50%;"></div>
+          <div id="oddBar" class="seg-red" style="width: 50%;"></div>
+        </div>
+
+        <div class="stat-row-grid" style="grid-template-columns: 1fr 1fr; margin-top: 1.15rem;">
+          <div class="mini-stat">
+            <span>Current Parity Streak</span>
+            <strong id="parityStreak">-</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Last 10 Parity Sequence</span>
+            <strong id="paritySequence" style="font-size: 0.82rem; letter-spacing: 0.08em;">----------</strong>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Hot & Cold Digits + Historical Tick Log -->
+    <div class="grid-2" id="history-section">
+      <section class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Hot &amp; Cold Digit Statistics</h2>
+            <p class="section-subtitle">Complete 0–9 ranking, counts, and deviation from 10% expected frequency</p>
+          </div>
+        </div>
+        <div id="hotColdMatrix" class="digit-matrix"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Historical Tick Log</h2>
+            <p class="section-subtitle">Latest 50 live ticks with extracted last digit</p>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Time (UTC)</th>
+                <th>Quote</th>
+                <th>Digit</th>
+                <th>Target (<span id="tableTargetLabel">0</span>)</th>
+                <th>Parity</th>
+              </tr>
+            </thead>
+            <tbody id="tickHistoryBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="disclaimer-box">
+      <strong>Statistical &amp; Educational Disclaimer:</strong> DIGIT LAB is an independent statistical analysis and educational visualization tool powered by public Deriv market tick streams. Each tick in Deriv Volatility Indices is generated independently; historical digit frequencies, hot/cold streaks, and Matches/Differs distributions do <strong>not</strong> predict future digits with certainty or guarantee trading profits. Never trade with money you cannot afford to lose.
+    </div>
+    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+      <span>DIGIT LAB – DERIV ANALYSIS TOOL • Real-Time WebSocket Engine (No API Token Required)</span>
+      <span class="mono">Source: wss://ws.derivws.com/websockets/v3</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // Application State
+      const state = {
+        ws: null,
+        symbol: 'R_100',
+        sampleSize: 100,
+        selectedDigit: 0,
+        ouBarrier: 4,
+        pipSize: 2,
+        ticks: [], // Chronological array: oldest -> newest { epoch, quoteStr, lastDigit }
+        reconnectAttempts: 0,
+        reconnectTimer: null,
+        pingTimer: null,
+        isManualClose: false
+      };
+
+      const MARKET_NAMES = {
+        'R_10': 'Volatility 10 Index',
+        'R_25': 'Volatility 25 Index',
+        'R_50': 'Volatility 50 Index',
+        'R_75': 'Volatility 75 Index',
+        'R_100': 'Volatility 100 Index',
+        '1HZ10V': 'Volatility 10 (1s) Index',
+        '1HZ25V': 'Volatility 25 (1s) Index',
+        '1HZ50V': 'Volatility 50 (1s) Index',
+        '1HZ75V': 'Volatility 75 (1s) Index',
+        '1HZ100V': 'Volatility 100 (1s) Index'
+      };
+
+      // DOM References
+      const el = {
+        marketSelect: document.getElementById('marketSelect'),
+        sampleSelect: document.getElementById('sampleSelect'),
+        connectionStatus: document.getElementById('connectionStatus'),
+        statusText: document.getElementById('statusText'),
+        reconnectBtn: document.getElementById('reconnectBtn'),
+        bannerRetryBtn: document.getElementById('bannerRetryBtn'),
+        loadingBanner: document.getElementById('loadingBanner'),
+        errorBanner: document.getElementById('errorBanner'),
+        errorText: document.getElementById('errorText'),
+        kpiMarket: document.getElementById('kpiMarket'),
+        kpiSymbol: document.getElementById('kpiSymbol'),
+        kpiPrice: document.getElementById('kpiPrice'),
+        kpiPriceTime: document.getElementById('kpiPriceTime'),
+        kpiLatestDigit: document.getElementById('kpiLatestDigit'),
+        kpiTargetDigit: document.getElementById('kpiTargetDigit'),
+        kpiTicksCount: document.getElementById('kpiTicksCount'),
+        kpiBufferInfo: document.getElementById('kpiBufferInfo'),
+        liveTickTape: document.getElementById('liveTickTape'),
+        digitSelector: document.getElementById('digitSelector'),
+        matchDigitLabel: document.getElementById('matchDigitLabel'),
+        differDigitLabel: document.getElementById('differDigitLabel'),
+        matchCountLabel: document.getElementById('matchCountLabel'),
+        differCountLabel: document.getElementById('differCountLabel'),
+        matchPctLabel: document.getElementById('matchPctLabel'),
+        differPctLabel: document.getElementById('differPctLabel'),
+        matchProgress: document.getElementById('matchProgress'),
+        differProgress: document.getElementById('differProgress'),
+        matchDeltaLabel: document.getElementById('matchDeltaLabel'),
+        differDeltaLabel: document.getElementById('differDeltaLabel'),
+        ticksSinceMatch: document.getElementById('ticksSinceMatch'),
+        maxDifferStreak: document.getElementById('maxDifferStreak'),
+        avgMatchInterval: document.getElementById('avgMatchInterval'),
+        matchIntervalsList: document.getElementById('matchIntervalsList'),
+        chartTargetDigit: document.getElementById('chartTargetDigit'),
+        histTargetDigit: document.getElementById('histTargetDigit'),
+        ouBarrierSelector: document.getElementById('ouBarrierSelector'),
+        ouBarrierDisplay: document.getElementById('ouBarrierDisplay'),
+        overBarrierNum: document.getElementById('overBarrierNum'),
+        underBarrierNum: document.getElementById('underBarrierNum'),
+        equalBarrierNum: document.getElementById('equalBarrierNum'),
+        overPct: document.getElementById('overPct'),
+        underPct: document.getElementById('underPct'),
+        overCount: document.getElementById('overCount'),
+        underCount: document.getElementById('underCount'),
+        overBar: document.getElementById('overBar'),
+        underBar: document.getElementById('underBar'),
+        equalBarrierStat: document.getElementById('equalBarrierStat'),
+        ouTheoretical: document.getElementById('ouTheoretical'),
+        evenPct: document.getElementById('evenPct'),
+        oddPct: document.getElementById('oddPct'),
+        evenCount: document.getElementById('evenCount'),
+        oddCount: document.getElementById('oddCount'),
+        evenBar: document.getElementById('evenBar'),
+        oddBar: document.getElementById('oddBar'),
+        parityStreak: document.getElementById('parityStreak'),
+        paritySequence: document.getElementById('paritySequence'),
+        hotColdMatrix: document.getElementById('hotColdMatrix'),
+        tickHistoryBody: document.getElementById('tickHistoryBody'),
+        tableTargetLabel: document.getElementById('tableTargetLabel')
+      };
+
+      // Format quote preserving exact pip decimal places (so trailing zeros are never lost)
+      function formatQuoteAndDigit(rawQuote, pipSize) {
+        const num = Number(rawQuote);
+        const formatted = Number.isFinite(num) ? num.toFixed(pipSize) : String(rawQuote);
+        const lastChar = formatted.slice(-1);
+        const lastDigit = parseInt(lastChar, 10);
+        return {
+          quoteStr: formatted,
+          lastDigit: Number.isNaN(lastDigit) ? 0 : lastDigit
+        };
+      }
+
+      // Initialize UI Controls
+      function initControls() {
+        // Build 0-9 Target Digit Buttons
+        el.digitSelector.innerHTML = '';
+        for (let d = 0; d <= 9; d++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'digit-btn' + (d === state.selectedDigit ? ' selected' : '');
+          btn.dataset.digit = d;
+          btn.innerHTML = `<span class="d-num">${d}</span><span class="d-pct" id="btnPct-${d}">0.0%</span>`;
+          btn.addEventListener('click', () => {
+            state.selectedDigit = d;
+            updateDigitButtonsUI();
+            renderAnalytics();
+          });
+          el.digitSelector.appendChild(btn);
+        }
+
+        // Build 0-9 Over/Under Barrier Buttons
+        el.ouBarrierSelector.innerHTML = '';
+        for (let b = 0; b <= 9; b++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'barrier-btn' + (b === state.ouBarrier ? ' active' : '');
+          btn.dataset.barrier = b;
+          btn.textContent = b;
+          btn.addEventListener('click', () => {
+            state.ouBarrier = b;
+            document.querySelectorAll('.barrier-btn').forEach(elBtn => {
+              elBtn.classList.toggle('active', Number(elBtn.dataset.barrier) === b);
+            });
+            renderAnalytics();
+          });
+          el.ouBarrierSelector.appendChild(btn);
+        }
+
+        // Market Selection
+        el.marketSelect.addEventListener('change', (e) => {
+          state.symbol = e.target.value;
+          el.kpiMarket.textContent = MARKET_NAMES[state.symbol] || state.symbol;
+          el.kpiSymbol.textContent = `Symbol: ${state.symbol} • Public Feed`;
+          state.ticks = [];
+          renderAnalytics();
+          connectDerivWS();
+        });
+
+        // Sample Window Selection
+        el.sampleSelect.addEventListener('change', (e) => {
+          state.sampleSize = Number(e.target.value);
+          renderAnalytics();
+        });
+
+        // Reconnect Buttons
+        const triggerReconnect = () => {
+          state.reconnectAttempts = 0;
+          connectDerivWS();
+        };
+        el.reconnectBtn.addEventListener('click', triggerReconnect);
+        el.bannerRetryBtn.addEventListener('click', triggerReconnect);
+
+        // Navigation Tabs
+        document.querySelectorAll('.tab-btn').forEach(tab => {
+          tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.dataset.target;
+            if (target === 'all') {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+              const section = document.getElementById(target);
+              if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
+        });
+      }
+
+      function updateDigitButtonsUI() {
+        document.querySelectorAll('.digit-btn').forEach(btn => {
+          btn.classList.toggle('selected', Number(btn.dataset.digit) === state.selectedDigit);
+        });
+      }
+
+      // Initialize Chart.js Visualizations
+      let freqBarChart, mdDoughnutChart, historicalLineChart;
+
+      function initCharts() {
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // 1. 0-9 Frequency Bar Chart
+        const barCtx = document.getElementById('freqBarChart').getContext('2d');
+        freqBarChart = new Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+            datasets: [
+              {
+                label: 'Frequency (%)',
+                data: Array(10).fill(0),
+                backgroundColor: Array(10).fill('rgba(59, 130, 246, 0.75)'),
+                borderColor: Array(10).fill('#3b82f6'),
+                borderWidth: 1.5,
+                borderRadius: 6
+              },
+              {
+                label: '10% Theoretical Mean',
+                data: Array(10).fill(10),
+                type: 'line',
+                borderColor: 'rgba(148, 163, 184, 0.65)',
+                borderDash: [5, 5],
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 250 },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ctx.datasetIndex === 0 ? `Frequency: ${ctx.parsed.y.toFixed(2)}%` : 'Expected: 10.00%'
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                suggestedMax: 20,
+                grid: { color: '#1e293b' },
+                ticks: { callback: (v) => v + '%' }
+              },
+              x: {
+                grid: { display: false }
+              }
+            }
+          }
+        });
+
+        // 2. Matches vs Differs Doughnut Chart
+        const mdCtx = document.getElementById('mdDoughnutChart').getContext('2d');
+        mdDoughnutChart = new Chart(mdCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Matches', 'Differs'],
+            datasets: [{
+              data: [10, 90],
+              backgroundColor: ['#10b981', '#ef4444'],
+              borderColor: '#111827',
+              borderWidth: 3,
+              hoverOffset: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            animation: { duration: 250 },
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { padding: 16, usePointStyle: true }
+              },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => `${ctx.label}: ${ctx.parsed.toFixed(2)}%`
+                }
+              }
+            }
+          }
+        });
+
+        // 3. Historical Frequency Line Chart
+        const histCtx = document.getElementById('historicalLineChart').getContext('2d');
+        historicalLineChart = new Chart(histCtx, {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: 'Target Digit %',
+                data: [],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                borderWidth: 2.5,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 3
+              },
+              {
+                label: '10% Baseline',
+                data: [],
+                borderColor: 'rgba(148, 163, 184, 0.5)',
+                borderDash: [4, 4],
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: false
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 250 },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                suggestedMax: 25,
+                grid: { color: '#1e293b' },
+                ticks: { callback: (v) => v + '%' }
+              },
+              x: {
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      }
+
+      // Deriv Public WebSocket Connection
+      function setConnectionUI(status, text) {
+        el.connectionStatus.className = 'status-pill ' + status;
+        el.statusText.textContent = text;
+      }
+
+      function connectDerivWS() {
+        if (state.reconnectTimer) {
+          clearTimeout(state.reconnectTimer);
+          state.reconnectTimer = null;
+        }
+        if (state.pingTimer) {
+          clearInterval(state.pingTimer);
+          state.pingTimer = null;
+        }
+        if (state.ws) {
+          state.isManualClose = true;
+          try { state.ws.close(); } catch (_) {}
+        }
+
+        state.isManualClose = false;
+        setConnectionUI('', 'Connecting...');
+        el.loadingBanner.classList.add('show');
+        el.errorBanner.classList.remove('show');
+
+        // Official Deriv Public WebSocket Endpoint (app_id 1089 is Deriv's official public demo app_id)
+        const ws = new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
+        state.ws = ws;
+
+        ws.onopen = () => {
+          state.reconnectAttempts = 0;
+          setConnectionUI('connected', 'Live Connected');
+          el.errorBanner.classList.remove('show');
+
+          // Request last 1,000 historical ticks + subscribe to live ticks
+          ws.send(JSON.stringify({
+            ticks_history: state.symbol,
+            adjust_start_time: 1,
+            count: 1000,
+            end: 'latest',
+            style: 'ticks',
+            subscribe: 1
+          }));
+
+          // Keep-alive ping every 30s
+          state.pingTimer = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ ping: 1 }));
+            }
+          }, 30000);
+        };
+
+        ws.onmessage = (event) => {
+          let data;
+          try {
+            data = JSON.parse(event.data);
+          } catch (err) {
+            return;
+          }
+
+          if (data.error) {
+            el.loadingBanner.classList.remove('show');
+            el.errorText.textContent = `Deriv API Error: ${data.error.message || 'Unable to stream market.'}`;
+            el.errorBanner.classList.add('show');
+            return;
+          }
+
+          // Initial 1,000 ticks batch
+          if (data.msg_type === 'history' && data.history) {
+            el.loadingBanner.classList.remove('show');
+            const pipSize = Number.isInteger(data.pip_size) ? data.pip_size : 2;
+            state.pipSize = pipSize;
+
+            const prices = data.history.prices || [];
+            const times = data.history.times || [];
+            const parsedTicks = [];
+
+            for (let i = 0; i < prices.length; i++) {
+              const { quoteStr, lastDigit } = formatQuoteAndDigit(prices[i], pipSize);
+              parsedTicks.push({
+                epoch: times[i],
+                quoteStr,
+                lastDigit
+              });
+            }
+
+            state.ticks = parsedTicks.slice(-1000);
+            if (state.ticks.length > 0) {
+              const latest = state.ticks[state.ticks.length - 1];
+              updateLiveHeader(latest, false);
+            }
+            renderAnalytics();
+          }
+
+          // Real-time streaming tick
+          if (data.msg_type === 'tick' && data.tick) {
+            el.loadingBanner.classList.remove('show');
+            if (Number.isInteger(data.tick.pip_size)) {
+              state.pipSize = data.tick.pip_size;
+            }
+            const { quoteStr, lastDigit } = formatQuoteAndDigit(data.tick.quote, state.pipSize);
+            const tickObj = {
+              epoch: data.tick.epoch,
+              quoteStr,
+              lastDigit
+            };
+
+            state.ticks.push(tickObj);
+            if (state.ticks.length > 1000) {
+              state.ticks.shift();
+            }
+
+            updateLiveHeader(tickObj, true);
+            renderAnalytics();
+          }
+        };
+
+        ws.onerror = () => {
+          setConnectionUI('disconnected', 'Stream Error');
+        };
+
+        ws.onclose = () => {
+          if (state.pingTimer) {
+            clearInterval(state.pingTimer);
+            state.pingTimer = null;
+          }
+          if (state.isManualClose) return;
+
+          setConnectionUI('disconnected', 'Disconnected');
+          el.loadingBanner.classList.remove('show');
+          state.reconnectAttempts++;
+          const delay = Math.min(1000 * Math.pow(1.5, state.reconnectAttempts), 15000);
+          el.errorText.textContent = `WebSocket disconnected. Reconnecting in ${(delay / 1000).toFixed(1)}s...`;
+          el.errorBanner.classList.add('show');
+
+          state.reconnectTimer = setTimeout(() => {
+            connectDerivWS();
+          }, delay);
+        };
+      }
+
+      function updateLiveHeader(tickObj, animate) {
+        el.kpiPrice.textContent = tickObj.quoteStr;
+        const dt = new Date(tickObj.epoch * 1000);
+        el.kpiPriceTime.textContent = `UTC: ${dt.toISOString().substr(11, 8)}`;
+
+        el.kpiLatestDigit.textContent = tickObj.lastDigit;
+        if (animate) {
+          const isMatch = tickObj.lastDigit === state.selectedDigit;
+          el.kpiLatestDigit.classList.remove('flash-green', 'flash-red');
+          void el.kpiLatestDigit.offsetWidth; // trigger reflow
+          el.kpiLatestDigit.classList.add(isMatch ? 'flash-green' : 'flash-red');
+        }
+      }
+
+      // Statistical Engine & UI Renderer
+      function renderAnalytics() {
+        const totalBuffer = state.ticks.length;
+        const sample = state.ticks.slice(-state.sampleSize);
+        const N = sample.length;
+        const target = state.selectedDigit;
+
+        el.kpiTargetDigit.textContent = target;
+        el.kpiTicksCount.textContent = `${N} / ${state.sampleSize}`;
+        el.kpiBufferInfo.textContent = `Buffer: ${totalBuffer.toLocaleString()} of 1,000 max ticks`;
+
+        el.matchDigitLabel.textContent = target;
+        el.differDigitLabel.textContent = target;
+        el.chartTargetDigit.textContent = target;
+        el.histTargetDigit.textContent = target;
+        el.tableTargetLabel.textContent = target;
+
+        if (N === 0) return;
+
+        // 1. Digit Frequencies (0-9)
+        const counts = Array(10).fill(0);
+        for (let i = 0; i < N; i++) {
+          counts[sample[i].lastDigit]++;
+        }
+        const percentages = counts.map(c => (c / N) * 100);
+
+        // Short-term percentage direction: compare the newer half of the sample
+        // with the older half. This is a descriptive trend, not a prediction.
+        const half = Math.max(1, Math.floor(N / 2));
+        const older = sample.slice(0, N - half);
+        const newer = sample.slice(N - half);
+        const olderCounts = Array(10).fill(0), newerCounts = Array(10).fill(0);
+        older.forEach(t => olderCounts[t.lastDigit]++);
+        newer.forEach(t => newerCounts[t.lastDigit]++);
+        const olderPct = older.map ? olderCounts.map(c => older.length ? c / older.length * 100 : 0) : Array(10).fill(0);
+        const newerPct = newerCounts.map(c => newer.length ? c / newer.length * 100 : 0);
+        const liveGrid = document.getElementById('strategyLiveGrid');
+        if (liveGrid) liveGrid.innerHTML = percentages.map((pct, d) => {
+          const delta = newerPct[d] - olderPct[d];
+          const direction = delta > 0.0001 ? '↑ rising' : delta < -0.0001 ? '↓ falling' : '→ steady';
+          return `<div class="strategy-digit"><b>${d} · ${pct.toFixed(1)}%</b><span>${direction} (${delta >= 0 ? '+' : ''}${delta.toFixed(1)}pp)</span></div>`;
+        }).join('');
+
+        // Update 0-9 selector button percentages
+        for (let d = 0; d <= 9; d++) {
+          const badge = document.getElementById(`btnPct-${d}`);
+          if (badge) badge.textContent = `${percentages[d].toFixed(1)}%`;
+        }
+
+        // 2. Matches & Differs Calculations
+        const matchCount = counts[target];
+        const differCount = N - matchCount;
+        const matchPct = (matchCount / N) * 100;
+        const differPct = (differCount / N) * 100;
+        const matchDelta = matchPct - 10;
+        const differDelta = differPct - 90;
+
+        el.matchCountLabel.textContent = `${matchCount} ticks`;
+        el.differCountLabel.textContent = `${differCount} ticks`;
+        el.matchPctLabel.textContent = `${matchPct.toFixed(1)}%`;
+        el.differPctLabel.textContent = `${differPct.toFixed(1)}%`;
+        el.matchProgress.style.width = `${Math.min(100, matchPct)}%`;
+        el.differProgress.style.width = `${Math.min(100, differPct)}%`;
+        el.matchDeltaLabel.textContent = `Diff: ${matchDelta >= 0 ? '+' : ''}${matchDelta.toFixed(1)}%`;
+        el.differDeltaLabel.textContent = `Diff: ${differDelta >= 0 ? '+' : ''}${differDelta.toFixed(1)}%`;
+
+        // Historical Occurrences, Gaps & Streaks for Target Digit
+        let ticksSinceLast = 0;
+        let foundRecent = false;
+        for (let i = N - 1; i >= 0; i--) {
+          if (sample[i].lastDigit === target) {
+            foundRecent = true;
+            break;
+          }
+          ticksSinceLast++;
+        }
+        el.ticksSinceMatch.textContent = foundRecent ? `${ticksSinceLast} ticks` : `>${N} ticks`;
+
+        let maxDifferStreak = 0;
+        let currentDifferStreak = 0;
+        const matchIndices = [];
+
+        for (let i = 0; i < N; i++) {
+          if (sample[i].lastDigit === target) {
+            matchIndices.push(i);
+            if (currentDifferStreak > maxDifferStreak) maxDifferStreak = currentDifferStreak;
+            currentDifferStreak = 0;
+          } else {
+            currentDifferStreak++;
+          }
+        }
+        if (currentDifferStreak > maxDifferStreak) maxDifferStreak = currentDifferStreak;
+        el.maxDifferStreak.textContent = `${maxDifferStreak} ticks`;
+
+        const intervals = [];
+        for (let i = 1; i < matchIndices.length; i++) {
+          intervals.push(matchIndices[i] - matchIndices[i - 1]);
+        }
+        const avgInterval = intervals.length > 0
+          ? (intervals.reduce((a, b) => a + b, 0) / intervals.length).toFixed(1)
+          : '-';
+        el.avgMatchInterval.textContent = avgInterval === '-' ? '-' : `${avgInterval}`;
+
+        // Render recent intervals chips
+        const recentIntervals = intervals.slice(-15).reverse();
+        el.matchIntervalsList.innerHTML = recentIntervals.length > 0
+          ? recentIntervals.map(gap => `<span class="tick-chip" title="Ticks between matches">${gap}</span>`).join('')
+          : `<span class="section-subtitle">Not enough occurrences in current window</span>`;
+
+        // 3. Live Tick Tape (Latest 30 ticks, newest on left)
+        const tapeTicks = sample.slice(-30).reverse();
+        el.liveTickTape.innerHTML = tapeTicks.map((t, idx) => {
+          const cls = t.lastDigit === target ? 'is-match' : 'is-differ';
+          const latestCls = idx === 0 ? ' latest' : '';
+          return `<div class="tick-chip ${cls}${latestCls}" title="Price: ${t.quoteStr}">${t.lastDigit}</div>`;
+        }).join('');
+
+        // 4. Over / Under Analysis
+        const barrier = state.ouBarrier;
+        let overCount = 0, underCount = 0, equalCount = 0;
+        for (let i = 0; i < N; i++) {
+          const d = sample[i].lastDigit;
+          if (d > barrier) overCount++;
+          else if (d < barrier) underCount++;
+          else equalCount++;
+        }
+        const overPct = (overCount / N) * 100;
+        const underPct = (underCount / N) * 100;
+        const equalPct = (equalCount / N) * 100;
+
+        el.ouBarrierDisplay.textContent = barrier;
+        el.overBarrierNum.textContent = barrier;
+        el.underBarrierNum.textContent = barrier;
+        el.equalBarrierNum.textContent = barrier;
+        el.overPct.textContent = `${overPct.toFixed(1)}%`;
+        el.underPct.textContent = `${underPct.toFixed(1)}%`;
+        el.overCount.textContent = overCount;
+        el.underCount.textContent = underCount;
+        el.equalBarrierStat.textContent = `${equalCount} (${equalPct.toFixed(1)}%)`;
+
+        const totalNonEqual = overPct + underPct;
+        const overBarW = totalNonEqual > 0 ? (overPct / totalNonEqual) * 100 : 50;
+        el.overBar.style.width = `${overBarW}%`;
+        el.underBar.style.width = `${100 - overBarW}%`;
+
+        const theoOver = (9 - barrier) * 10;
+        const theoUnder = barrier * 10;
+        el.ouTheoretical.textContent = `${theoOver.toFixed(0)}% / ${theoUnder.toFixed(0)}%`;
+
+        // 5. Even / Odd Analysis
+        let evenCount = 0;
+        for (let i = 0; i < N; i++) {
+          if (sample[i].lastDigit % 2 === 0) evenCount++;
+        }
+        const oddCount = N - evenCount;
+        const evenPct = (evenCount / N) * 100;
+        const oddPct = (oddCount / N) * 100;
+
+        el.evenPct.textContent = `${evenPct.toFixed(1)}%`;
+        el.oddPct.textContent = `${oddPct.toFixed(1)}%`;
+        el.evenCount.textContent = evenCount;
+        el.oddCount.textContent = oddCount;
+        el.evenBar.style.width = `${evenPct}%`;
+        el.oddBar.style.width = `${oddPct}%`;
+
+        // Current Parity Streak & Last 10 Sequence
+        const latestIsEven = sample[N - 1].lastDigit % 2 === 0;
+        let streakLen = 0;
+        for (let i = N - 1; i >= 0; i--) {
+          if ((sample[i].lastDigit % 2 === 0) === latestIsEven) streakLen++;
+          else break;
+        }
+        el.parityStreak.textContent = `${streakLen}x ${latestIsEven ? 'EVEN' : 'ODD'}`;
+        el.parityStreak.style.color = latestIsEven ? 'var(--green)' : 'var(--red)';
+
+        const last10Parity = sample.slice(-10).map(t => (t.lastDigit % 2 === 0 ? 'E' : 'O')).join(' ');
+        el.paritySequence.textContent = last10Parity;
+
+        // 6. Hot & Cold Matrix
+        const maxPct = Math.max(...percentages);
+        const minPct = Math.min(...percentages);
+
+        el.hotColdMatrix.innerHTML = percentages.map((pct, d) => {
+          const isHot = pct === maxPct && maxPct > 10;
+          const isCold = pct === minPct && minPct < 10;
+          const dev = pct - 10;
+          let cls = 'matrix-cell';
+          let tag = '';
+          if (isHot) {
+            cls += ' hot';
+            tag = '<span class="badge-tag badge-hot">HOT</span>';
+          } else if (isCold) {
+            cls += ' cold';
+            tag = '<span class="badge-tag badge-cold">COLD</span>';
+          }
+          return `
+            <div class="${cls}">
+              ${tag}
+              <div class="mono" style="font-size: 1.25rem; font-weight: 800;">${d}</div>
+              <div class="mono" style="font-size: 0.9rem; font-weight: 700; color: ${isHot ? 'var(--green)' : isCold ? 'var(--red)' : 'var(--text-primary)'};">${pct.toFixed(1)}%</div>
+              <div style="font-size: 0.72rem; color: var(--text-secondary);">${counts[d]} ticks (${dev >= 0 ? '+' : ''}${dev.toFixed(1)}%)</div>
+            </div>
+          `;
+        }).join('');
+
+        // 7. Historical Tick Table (Latest 50)
+        const tableRows = sample.slice(-50).reverse().map(t => {
+          const timeStr = new Date(t.epoch * 1000).toISOString().substr(11, 8);
+          const isMatch = t.lastDigit === target;
+          const isEven = t.lastDigit % 2 === 0;
+          return `
+            <tr>
+              <td style="color: var(--text-secondary);">${timeStr}</td>
+              <td>${t.quoteStr}</td>
+              <td><strong>${t.lastDigit}</strong></td>
+              <td><span class="pill-sm ${isMatch ? 'pill-green' : 'pill-red'}">${isMatch ? 'MATCH' : 'DIFFER'}</span></td>
+              <td style="color: ${isEven ? 'var(--green)' : 'var(--red)'};">${isEven ? 'EVEN' : 'ODD'}</td>
+            </tr>
+          `;
+        }).join('');
+        el.tickHistoryBody.innerHTML = tableRows;
+
+        // 8. Update Charts
+        updateCharts(percentages, matchPct, differPct, sample, target);
+      }
+
+      function updateCharts(percentages, matchPct, differPct, sample, target) {
+        const maxPct = Math.max(...percentages);
+        const minPct = Math.min(...percentages);
+
+        // Bar Chart colors
+        const bgColors = percentages.map((pct, d) => {
+          if (d === target) return 'rgba(59, 130, 246, 0.85)';
+          if (pct === maxPct) return 'rgba(16, 185, 129, 0.8)';
+          if (pct === minPct) return 'rgba(239, 68, 68, 0.8)';
+          return 'rgba(100, 116, 139, 0.55)';
+        });
+        const borderColors = percentages.map((pct, d) => {
+          if (d === target) return '#60a5fa';
+          if (pct === maxPct) return '#10b981';
+          if (pct === minPct) return '#ef4444';
+          return '#64748b';
+        });
+
+        freqBarChart.data.datasets[0].data = percentages;
+        freqBarChart.data.datasets[0].backgroundColor = bgColors;
+        freqBarChart.data.datasets[0].borderColor = borderColors;
+        freqBarChart.update('none');
+
+        // Doughnut Chart
+        mdDoughnutChart.data.labels = [`Matches (${target})`, `Differs (Not ${target})`];
+        mdDoughnutChart.data.datasets[0].data = [matchPct, differPct];
+        mdDoughnutChart.update('none');
+
+        // Historical Segment Trend (split sample into up to 10 chronological segments)
+        const numSegments = Math.min(10, Math.max(2, Math.floor(sample.length / 5)));
+        const segSize = Math.floor(sample.length / numSegments);
+        const segLabels = [];
+        const segValues = [];
+
+        if (segSize >= 1) {
+          for (let s = 0; s < numSegments; s++) {
+            const start = s * segSize;
+            const end = s === numSegments - 1 ? sample.length : (s + 1) * segSize;
+            const slice = sample.slice(start, end);
+            const mCount = slice.filter(t => t.lastDigit === target).length;
+            segLabels.push(`B${s + 1}`);
+            segValues.push((mCount / slice.length) * 100);
+          }
+        }
+
+        historicalLineChart.data.labels = segLabels;
+        historicalLineChart.data.datasets[0].data = segValues;
+        historicalLineChart.data.datasets[1].data = Array(segLabels.length).fill(10);
+        historicalLineChart.update('none');
+      }
+
+      // Bootstrap Application
+      initControls();
+      initCharts();
+      connectDerivWS();
+    })();
+  </script>
+</body>
+</html>
